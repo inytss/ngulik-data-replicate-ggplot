@@ -1,0 +1,136 @@
+---
+title: "Replicate Plot using `ggplot2`"
+author: "Inayatus"
+date: "6/27/2020"
+output: 
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: true
+    df_print: paged
+    theme: united
+    highlight: zenburn
+  
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(scipen = 99)
+```
+
+# Library Setup
+
+```{r, message=FALSE, warning=FALSE}
+# data wrangling
+library(dplyr)
+
+# visualisasi
+library(ggplot2)
+library(ggthemes)
+```
+
+# Read Data
+
+Karakteristik nasabah yang melakukan pengajuan pinjaman dengan status default "yes".
+```{r}
+loan <- read.csv("loan-default.csv", stringsAsFactors = T)
+head(loan)
+```
+
+# Cleansing Data
+
+```{r}
+# cek missing value
+colSums(is.na(loan))
+```
+
+
+# Exploratory Data Analysis
+
+```{r}
+glimpse(loan)
+```
+
+months_loan_duration = ciclannya berapa bulan
+checking_balance = saldo yang dimiliki pelanggan
+credit_history = status peminjaman/kredit sebelumnya
+purpose = tujuan peminjaman dana
+amount = total dana yang dipinjam (sepertinya dalam $)
+employement_duration = lama/masa kerja
+year_at_residence = lama kepemilkian rumah (tahun)
+age = usia/umur peminjam (edited) 
+others_credit = punya kredit lai atau tidak
+housing = status kepemilkan rumahnya
+existing_loan_count = frekuensi/jumlah pinjaman si peminjam
+job = jenis pekerjaannya
+phone = punya telp rumah atau tidak (sepertinya)
+default = dia bisa bayar/tidak
+
+## Berdasarkan yang melakukan pengajuan pinjaman, bagaimana distribusi `amount` berdasarkan kemampuan bayarnya?
+
+```{r}
+ggplot(aes(x = amount, fill = default), data = loan) +
+  geom_density(alpha = 0.5, col = F) +
+  scale_fill_manual(values = c("#ae2024", "black")) +
+  scale_y_continuous(expand = expand_scale(mult = c(0, 0.1))) +
+  labs(title = "Amount of Loan Distribution", x = "Amount of Loan", 
+       y = NULL, fill = "Default Status") +
+  theme_fivethirtyeight()+
+  theme(legend.position = "top",
+        legend.key.height = unit(12, "pt"),
+        legend.key.width = unit(36, "pt"))
+  
+```
+
+
+## Berdasarkan tujuan pengajuan pinjaman, berapa banyak yang memiliki default `yes` dan `no`?
+
+```{r}
+levels(loan$purpose)
+```
+
+```{r}
+ggplot(aes(x = purpose, fill = purpose), data = loan) +
+  geom_bar()+
+  facet_wrap(~default) +
+  labs(title = "Default Status based on Its Purpose", y = NULL, x = NULL) +
+  theme_fivethirtyeight()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none",
+        strip.background = element_rect(fill = "#ae2024"),
+        strip.text = element_text(color = "white")) 
+```
+
+## Berdasarkan pekerjaan nasabah peminjam, pekerjaan mana yang memiliki kecenderungan lebih besar untuk tidak mampu bayar?
+
+```{r}
+ggplot(aes(x = job, fill = job), data = loan) +
+  geom_bar()+
+  facet_wrap(~default) +
+  labs(title = "Default Status based on Job Skill", y = NULL, x = NULL) +
+  theme_fivethirtyeight()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none",
+        strip.background = element_rect(fill = "#ae2024"),
+        strip.text = element_text(color = "white")) 
+```
+
+
+## Status credit history yang lebih memiliki behaviour untuk default not paid?
+
+```{r}
+loan %>% 
+  filter(default == "no") %>% 
+ggplot(aes(x = credit_history, y = amount, fill = credit_history)) +
+  geom_boxplot()+
+  facet_wrap(~default) +
+  labs(title = "Default Status No based on Credit History", y = NULL, x = NULL) +
+  theme_fivethirtyeight()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none",
+        strip.background = element_rect(fill = "#ae2024"),
+        strip.text = element_text(color = "white")) 
+```
+
+
+
